@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import classString from 'src/helpers/class-string'
 import HeadingAnchor from 'src/components/HeadingAnchor'
 import Swatch from 'src/components/Swatch'
+import Frame from 'react-frame-component'
 
 export default class Preview extends Component {
   constructor (props) {
@@ -61,11 +62,13 @@ export default class Preview extends Component {
 
         {swatchButtons}
 
-        <div
-          style={{background: current}}
+        <Frame
+          style={{
+            background: current
+          }}
           className={classString('__preview')}>
           {Component}
-        </div>
+        </Frame>
       </section>
     )
   }
