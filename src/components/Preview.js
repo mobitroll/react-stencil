@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import ReactDom from 'react-dom'
 import PropTypes from 'prop-types'
 import classString from 'src/helpers/class-string'
 import HeadingAnchor from 'src/components/HeadingAnchor'
@@ -10,9 +11,11 @@ export default class Preview extends Component {
     super(props)
 
     this.state = {
-      current: null
+      current: null,
+      componentHeight: 0
     }
 
+    this.handleResize = this.handleResize.bind(this)
     this.setSwatch = this.setSwatch.bind(this)
   }
 
@@ -22,8 +25,23 @@ export default class Preview extends Component {
     })
   }
 
+  handleResize () {
+    const iframeElement = ReactDom.findDOMNode(this.iframe)
+    const iframeDocElement = iframeElement.contentDocument || iframeElement.contentWindow.document
+    const componentHeight = iframeDocElement.getElementsByTagName('html')[0].offsetHeight
+    if (componentHeight !== this.state.componentHeight) {
+      this.setState({
+        componentHeight
+      })
+    }
+  }
+
   render () {
-    const current = this.state.current
+    const {
+      current,
+      componentHeight
+    } = this.state
+
     const {
       swatches,
       children: Component
@@ -63,14 +81,29 @@ export default class Preview extends Component {
         {swatchButtons}
 
         <Frame
+          sandbox='allow-same-origin allow-scripts'
+          ref={(iframe) => {
+            this.iframe = iframe
+          }}
           style={{
-            background: current
+            background: current,
+            // 68 is the total padding and border width of the preview box
+            height: (componentHeight + 68)
           }}
           className={classString('__preview')}>
           {Component}
         </Frame>
       </section>
     )
+  }
+
+  componentDidMount () {
+    this.handleResize()
+    window.addEventListener('resize', this.handleResize)
+  }
+
+  componentWillUnmount () {
+    window.removeEventListener('resize', this.handleResize)
   }
 }
 
