@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
 import PropTypes from 'prop-types'
+import _debounce from 'lodash.debounce'
 import classString from 'src/helpers/class-string'
 import HeadingAnchor from 'src/components/HeadingAnchor'
 import Swatch from 'src/components/Swatch'
@@ -15,7 +16,7 @@ export default class Preview extends Component {
       componentHeight: 0
     }
 
-    this.handleResize = this.handleResize.bind(this)
+    this.handleResize = _debounce(this.handleResize.bind(this), 150)
     this.setSwatch = this.setSwatch.bind(this)
   }
 
@@ -104,6 +105,10 @@ export default class Preview extends Component {
 
   componentWillUnmount () {
     window.removeEventListener('resize', this.handleResize)
+  }
+
+  componentDidUpdate () {
+    this.handleResize()
   }
 }
 
