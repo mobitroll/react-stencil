@@ -7,6 +7,8 @@ import HeadingAnchor from 'src/components/HeadingAnchor'
 import Swatch from 'src/components/Swatch'
 import Frame from 'react-frame-component'
 
+let isResizing = false
+
 export default class Preview extends Component {
   constructor (props) {
     super(props)
@@ -27,6 +29,8 @@ export default class Preview extends Component {
   }
 
   handleResize () {
+    isResizing = true
+
     const iframeElement = ReactDom.findDOMNode(this.iframe)
     const iframeDocElement = iframeElement.contentDocument || iframeElement.contentWindow.document
     const componentHeight = iframeDocElement.getElementsByTagName('html')[0].offsetHeight
@@ -108,7 +112,11 @@ export default class Preview extends Component {
   }
 
   componentDidUpdate () {
-    this.handleResize()
+    if (!isResizing) {
+      this.handleResize()
+    }
+
+    isResizing = false
   }
 }
 
