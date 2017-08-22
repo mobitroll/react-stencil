@@ -1,17 +1,24 @@
 import React, { Component } from 'react'
+import ReactDom from 'react-dom'
 import PropTypes from 'prop-types'
+import _debounce from 'lodash.debounce'
 import classString from 'src/helpers/class-string'
 import HeadingAnchor from 'src/components/HeadingAnchor'
 import Swatch from 'src/components/Swatch'
+import Frame from 'react-frame-component'
+
+let isResizing = false
 
 export default class Preview extends Component {
   constructor (props) {
     super(props)
 
     this.state = {
-      current: null
+      current: null,
+      componentHeight: 0
     }
 
+    this.handleResize = _debounce(this.handleResize.bind(this), 150)
     this.setSwatch = this.setSwatch.bind(this)
   }
 
@@ -21,8 +28,25 @@ export default class Preview extends Component {
     })
   }
 
+  handleResize () {
+    isResizing = true
+
+    const iframeElement = ReactDom.findDOMNode(this.iframe)
+    const iframeDocElement = iframeElement.contentDocument || iframeElement.contentWindow.document
+    const componentHeight = iframeDocElement.getElementsByTagName('html')[0].offsetHeight
+    if (componentHeight !== this.state.componentHeight) {
+      this.setState({
+        componentHeight
+      })
+    }
+  }
+
   render () {
-    const current = this.state.current
+    const {
+      current,
+      componentHeight
+    } = this.state
+
     const {
       swatches,
       children: Component
@@ -61,13 +85,38 @@ export default class Preview extends Component {
 
         {swatchButtons}
 
-        <div
-          style={{background: current}}
+        <Frame
+          sandbox='allow-same-origin allow-scripts'
+          ref={(iframe) => {
+            this.iframe = iframe
+          }}
+          style={{
+            background: current,
+            // 68 is the total padding and border width of the preview box
+            height: (componentHeight + 68)
+          }}
           className={classString('__preview')}>
           {Component}
-        </div>
+        </Frame>
       </section>
     )
+  }
+
+  componentDidMount () {
+    this.handleResize()
+    window.addEventListener('resize', this.handleResize)
+  }
+
+  componentWillUnmount () {
+    window.removeEventListener('resize', this.handleResize)
+  }
+
+  componentDidUpdate () {
+    if (!isResizing) {
+      this.handleResize()
+    }
+
+    isResizing = false
   }
 }
 
